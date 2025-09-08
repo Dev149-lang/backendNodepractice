@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "just learning backend",
   "main": "index.js",
-  "type" : "module",
+  "type": "module",
   "scripts": {
     "dev": "nodemon index.js"
   },
@@ -16,7 +16,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "env": "^0.0.2",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongoose": "^8.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
