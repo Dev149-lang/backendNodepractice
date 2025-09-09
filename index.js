@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-
+import db from "./utils/db.js"; 
 
 dotenv.config();
 
@@ -25,6 +25,10 @@ app.get('/', (req, res) => {
 app.get('/twitter',(req,res)=>{
     res.send('winterxback')
 })
+
+// connect to db
+
+db();
 
 const port = process.env.PORT || 3000;
 

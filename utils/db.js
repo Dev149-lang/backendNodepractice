@@ -4,12 +4,17 @@ dotenv.config()
   
 
 
-mongoose.connect(process.env.MONGO_URL)
+const db = ()=> {
+    mongoose.connect(process.env.MONGO_URL)
 .then(()=>{
     console.log("connected to mongodb");
      
 })
-.catch((err)=>{
+.catch((err)=>{ 
     console.log("error");
     
 });
+}
+
+
+export default db;
