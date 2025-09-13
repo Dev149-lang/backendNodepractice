@@ -12,7 +12,7 @@ const db = ()=> {
 })
 .catch((err)=>{ 
     console.log("error");
-    
+     
 });
 }
 
