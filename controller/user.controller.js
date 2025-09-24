@@ -1,7 +1,9 @@
 import { log } from "console";
 import User from "../model/User.model.js"
 import crypto from "crypto";
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
+
 
 const registerUser = async (req,res)=> {
 
@@ -61,51 +63,51 @@ const registerUser = async (req,res)=> {
     const nodemailer = require("nodemailer");
 
 
-const transporter = nodemailer.createTransport({
-  host: process.env.MAILTRAP_HOST,
-  port: process.env.MAILTRAP_PORT,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.MAILTRAP_USERNAME,
-    pass: process.env.MAILTRAP_PASSWORD,
-  },
-});
-    
-const mailOptions = {
-    from: process.env.MAILTRAP_SENDEREMAIL,
-    to: userCreate.email,
-    subject:"verifying your email",
-    text: `please click on this link: 
-    ${process.env.BASE_URL}/api/v1/users/verify/${token}` ,
-};
-
-    await transporter.sendMail(mailOptions)
-
-
-     res.status(201).json({
-        message: "user registered successfully",
+    const transporter = nodemailer.createTransport({
+    host: process.env.MAILTRAP_HOST,
+    port: process.env.MAILTRAP_PORT,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: process.env.MAILTRAP_USERNAME,
+        pass: process.env.MAILTRAP_PASSWORD,
+    },
+    });
         
-        success: true,
-     });
+    const mailOptions = {
+        from: process.env.MAILTRAP_SENDEREMAIL,
+        to: userCreate.email,
+        subject:"verifying your email",
+        text: `please click on this link: 
+        ${process.env.BASE_URL}/api/v1/users/verify/${token}` ,
+    };
+
+        await transporter.sendMail(mailOptions)
+
+
+        res.status(201).json({
+            message: "user registered successfully",
+            
+            success: true,
+        });
 
 
 
 
 
-   } catch (error) {
+    } catch (error) {
 
-    res.status(400).json({
-        message: "user not registered",
-        error,
+        res.status(400).json({
+            message: "user not registered",
+            error,
+            
+            success: false,
+        });
         
-        success: false,
-     });
-    
-   }
-    
+    }
+        
 
 
-};
+    };
 
 
 const verifyuser = async (req,res) => {
@@ -117,8 +119,106 @@ const verifyuser = async (req,res) => {
     // remove verification token
     // save
     // return response
-    
+
+
+    const {token} = req.params;
+    console.log(token);
+    if(!token){
+        return res.status(400).json({
+            message: "invalid token"
+        })
+    }
+
+    const userCreate = User.findOne({verificationToken: token})
+    if(!userCreate){
+        return res.status(400).json({
+            message: "invalid token"
+        })
+    }
+
+
+    userCreate.isVerfied = true
+    userCreate.verificationToken = undefined
+    await userCreate.save()
 
 }
+    
 
-export {registerUser} ;
+
+
+const login = async (req,res)=> {
+        const {email, password} = req.body
+
+
+        if(!email || password){
+             return res.status(400).json({
+            message: "all fields are required"
+        })
+    }
+
+    try {
+        User.findOne({email})
+
+        if(!user){
+             return res.status(400).json({
+            message: "invalid email or password"
+        })
+        }
+
+        const isMatch =await bcrypt.compare(password, userCreate.password)
+
+        console.log(isMatch);
+
+        if(!isMatch){
+             return res.status(400).json({
+            message: "invalid email or password"
+        })
+        }
+        
+        const token = jwt.sign({id: userCreate._id, role: userCreate.role},
+
+            "shhhh", {
+                expiresIn:'24h'
+            }
+        ); 
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true,
+            maxAge: 24*60*1000
+        }
+        res.cookie("token", token, {})
+
+        res.status(200).json({
+            success: true,
+            message: "login successful",
+            token,
+            userCreate:{
+                id: userCreate._id,
+                name: userCreate.name,
+                role: userCreate.role
+            }
+        })
+
+    } catch (error) {
+        
+    }
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export {registerUser, verifyuser, login} ;
